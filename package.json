@@ -1,0 +1,40 @@
+{
+  "name": "event-connect-api",
+  "version": "1.0.0",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node src/server.js",
+    "dev": "nodemon src/server.js",
+    "prisma:migrate": "npx prisma migrate dev",
+    "prisma:generate": "npx prisma generate",
+    "prisma:studio": "npx prisma studio",
+    "prisma:reset": "npx prisma migrate reset --force",
+    "prisma:init": "npx prisma init",
+    "prisma:push": "npx prisma db push",
+    "seed": "node prisma/seed.js"
+  },
+  "keywords": [],
+  "author": "Yehezekocolo Joel Prince",
+  "license": "ISC",
+  "type": "module",
+  "description": "",
+  "dependencies": {
+    "@prisma/client": "^6.9.0",
+    "bcryptjs": "^3.0.2",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.5",
+    "dotenv": "^16.5.0",
+    "express": "^5.1.0",
+    "fedapay": "^1.2.5",
+    "jsonwebtoken": "^9.0.2",
+    "morgan": "^1.10.0",
+    "multer": "^2.0.2",
+    "nanoid": "^5.1.6",
+    "nodemailer": "^7.0.6",
+    "nodemon": "^3.1.10",
+    "npm": "^11.6.1",
+    "prisma": "^6.9.0",
+    "zod": "^4.3.6"
+  }
+}
