@@ -39,6 +39,7 @@ const EVENT_DETAIL_SELECT = {
     contactEmail: true,
     website: true,
     updatedAt: true,
+    bookings: true,
 };
 
 // ─── Vérification et passage auto en COMPLETED ────────────────────────────────

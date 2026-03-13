@@ -6,6 +6,7 @@ import { FedaPay, Transaction, Webhook } from "fedapay";
 import { appUrl } from "../utils/constant.js";
 import { addClient, notifyClient } from "../utils/sse.js";
 import { verifyFedapaySignature } from "../utils/fedapay.js";
+import { sendEmail } from "../utils/mail.js";
 
 FedaPay.setApiKey(process.env.FEDAPAY_SECRET_KEY);
 FedaPay.setEnvironment(process.env.FEDAPAY_ENV);
@@ -29,7 +30,7 @@ const bookingSelect = {
   paidAt: true,
   createdAt: true,
   event: {
-    select: { id: true, title: true, dateStart: true, coverImage: true, venue: true, city: true, isOnline: true },
+    select: { id: true, title: true, dateStart: true, coverImage: true, venue: true, city: true, isOnline: true, onlineUrl: true },
   },
   items: {
     select: {
@@ -37,6 +38,12 @@ const bookingSelect = {
       quantity: true,
       price: true,
       ticket: { select: { id: true, name: true, description: true } },
+    },
+  },
+  issuedTickets: {
+    select: {
+      code: true,
+      ticket: { select: { name: true } },
     },
   },
 };
@@ -206,13 +213,6 @@ async function confirmFreeBooking(booking) {
       await tx.issuedTicket.createMany({ data: ticketCodes });
     }
   });
-
-  const issuedTickets = await prisma.issuedTicket.findMany({
-    where: { bookingId: booking.id },
-    select: { code: true, ticket: { select: { name: true } } },
-  });
-
-  await sendBookingConfirmationEmail({ booking, issuedTickets });
 }
 
 // ── POST /api/bookings/webhook/fedapay ──────────────────────────────────────
@@ -299,6 +299,7 @@ export async function verifyBooking(req, res) {
   try {
     const booking = await prisma.booking.findUnique({ where: { reference }, select: bookingSelect });
     if (!booking) return sendResponse(res, false, "Réservation introuvable.");
+
     return sendResponse(res, true, "Réservation trouvée.", booking);
   } catch (error) {
     console.error("[BOOKING_VERIFY]", error);
@@ -349,7 +350,41 @@ export async function cancelBooking(req, res) {
   }
 }
 
-// ── Helper email ─────────────────────────────────────────────────────────────
-async function sendBookingConfirmationEmail({ booking, issuedTickets }) {
-  console.log(`[EMAIL] Envoi billets à ${booking.userEmail}`, issuedTickets.map(t => t.code));
+// POST /api/bookings/:id/send-tickets
+export async function sendTickets(req, res) {
+  const { id } = req.params;
+  const { pdf } = req.body;
+
+  if (!pdf) return sendResponse(res, false, "PDF manquant.");
+
+  const booking = await prisma.booking.findUnique({
+    where: { id },
+    select: {
+      userEmail: true, userName: true, reference: true, status: true,
+      event: { select: { title: true } }
+    },
+  });
+
+  if (!booking) return sendResponse(res, false, "Réservation introuvable.");
+  if (booking.status !== "CONFIRMED") return sendResponse(res, false, "Réservation non confirmée.");
+
+  const pdfBuffer = Buffer.from(pdf, "base64");
+  const subject = `Vos billets — ${booking.event?.title ?? "Événement"}`;
+  const content = `
+    <p>Bonjour <strong>${booking.userName}</strong>,</p>
+    <p>Retrouvez vos billets en pièce jointe.</p>
+    <p>Présentez le <strong>QR code</strong> à l'entrée. Chaque code est valable une seule fois.</p>
+  `;
+
+  const isSend = await sendEmail(booking.userEmail, subject, content, [{
+    filename: `billets-${booking.reference}.pdf`,
+    content: pdfBuffer,
+    contentType: "application/pdf",
+  }]);
+
+  if (!isSend) {
+    return sendResponse(res, false, "Billets non envoyés.")
+  }
+
+  return sendResponse(res, true, "Billets envoyés.");
 }

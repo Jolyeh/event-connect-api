@@ -31,7 +31,7 @@ eventRoutes.get('/:id', getEventById);
 // ─── Admin ────────────────────────────────────────────────────────────────────
 eventRoutes.get('/admin/all', requireAuth, requireAdmin, getAllEventsAdmin);
 eventRoutes.patch('/:id/vedette', requireAuth, requireAdmin, toggleVedette);
-eventRoutes.patch('/:id/status', requireAuth, requireAdmin, changeStatus);
+eventRoutes.patch('/:id/status', requireAuth, changeStatus);
 
 // ─── Organisateur authentifié ─────────────────────────────────────────────────
 eventRoutes.post(

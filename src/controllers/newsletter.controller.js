@@ -4,7 +4,7 @@ import { sendResponse } from "../utils/response.js";
 import { prisma } from "../config/prisma.js"
 
 const subscribeSchema = z.object({
-  email: z.string().email("Email invalide"),
+  email: z.string().min(1,"Email requis").email("Email invalide"),
 });
 
 // POST /api/newsletter/subscribe

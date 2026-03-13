@@ -2,7 +2,8 @@ import { transporter } from "../config/mailer.js";
 import { appName } from "./constant.js";
 import emailTemplate from "./mail_template.js";
 
-export const sendEmail = async (to, subject, content) => {
+
+export const sendEmail = async (to, subject, content, attachments = []) => {
   const html = emailTemplate(subject, content);
   try {
     const info = await transporter.sendMail({
@@ -10,6 +11,7 @@ export const sendEmail = async (to, subject, content) => {
       to,
       subject,
       html,
+      attachments,
     });
 
     console.log("✅ Email envoyé :", info.messageId);
@@ -19,7 +21,6 @@ export const sendEmail = async (to, subject, content) => {
     return false;
   }
 };
-
 
 export const sendToTech = async (error) => {
   const html = emailTemplate("Erreur sur l'application", error);

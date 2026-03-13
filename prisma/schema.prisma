@@ -59,7 +59,7 @@ model Event {
   id          String      @id @default(auto()) @map("_id") @db.ObjectId
   title       String
   description String
-  status      EventStatus @default(PENDING)
+  status      EventStatus @default(PUBLISHED)
   isVedette   Boolean     @default(false)
 
   // Relations de classification
